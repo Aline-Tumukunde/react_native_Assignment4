@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 const HomeScreen = () => {
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Welcome to ths App</Text>
+            <Text style={styles.title}>Welcome to this App</Text>
             <Text style={styles.subtitle}>In this app you can use calculator</Text>
             <Text style={styles.subtitle}>Save and delete contacts and also view your profile</Text>
 
