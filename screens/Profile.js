@@ -1,9 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
+
 const ProfileScreen = () => {
     return (
         <View style={styles.container}>
+            <Image source={{ uri:"https://picsum.photos/300" }}
+                style={{ width: 300, height: 300 }} />
             <Text style={styles.text}>Email: tumukunde@gmail.com</Text>
         </View>
     );
