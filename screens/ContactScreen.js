@@ -6,10 +6,9 @@ const ContactScreen = () => {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   
-  // Function to add a new contact
   const addContact = () => {
     if (name.trim() === '' || phoneNumber.trim() === '') {
-      return; // Don't add empty contact
+   
     }
     const newContact = { id: contacts.length + 1, name, phoneNumber };
     setContacts(prevContacts => [...prevContacts, newContact]);
@@ -17,7 +16,6 @@ const ContactScreen = () => {
     setPhoneNumber('');
   };
 
-  // Function to remove a contact
   const deleteContact = (id) => {
     setContacts(prevContacts => prevContacts.filter(contact => contact.id !== id));
   };
