@@ -22,7 +22,7 @@ const App = () => {
             if (value !== null) {
                 setStoredData(value);
             } else {
-                Alert.alert('Error', 'No data found for the given key');
+                Alert.alert('Error', 'No data found for the given key');// message
             }
         } catch (error) {
             console.error('Error retrieving data: ', error);
