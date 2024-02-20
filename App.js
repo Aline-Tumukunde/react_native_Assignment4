@@ -144,7 +144,6 @@ const getTheme = async () => {
 };
 
 const setAsyncStorageTheme = async (theme) => {
-  // Set theme to AsyncStorage
 };
 
 const Profile = ({ focused, color, size }) => (
