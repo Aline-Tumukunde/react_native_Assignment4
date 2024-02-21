@@ -16,29 +16,27 @@ const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
 
 export default function App() {
-  const [theme, setTheme] = useState(DefaultTheme); // State to hold the current theme
+  const [theme, setTheme] = useState(DefaultTheme); 
   const [currentThemeText, setCurrentThemeText] = useState('');
   const [isDarkTheme, setIsDarkTheme] = useState(false);
 
-  // Function to load theme from AsyncStorage
   const loadTheme = async () => {
     const savedTheme = await getTheme();
-    // Set the theme based on the retrieved value
     setTheme(savedTheme === 'dark' ? DarkTheme : DefaultTheme);
     setCurrentThemeText(savedTheme === 'dark' ? 'Dark Theme' : 'Light Theme');
     setIsDarkTheme(savedTheme === 'dark');
   };
 
   useEffect(() => {
-    loadTheme(); // Load theme when component mounts
+    loadTheme(); 
   }, []);
 
-  // Function to toggle between light and dark themes
+ 
   const toggleTheme = async () => {
     const newTheme = isDarkTheme ? 'light' : 'dark';
     setIsDarkTheme(!isDarkTheme);
-    setAsyncStorageTheme(newTheme); // Save the theme preference to AsyncStorage
-    setTheme(newTheme === 'dark' ? DarkTheme : DefaultTheme); // Set the theme
+    setAsyncStorageTheme(newTheme); 
+    setTheme(newTheme === 'dark' ? DarkTheme : DefaultTheme); 
     setCurrentThemeText(newTheme === 'dark' ? 'Dark Theme' : 'Light Theme');
   };
 

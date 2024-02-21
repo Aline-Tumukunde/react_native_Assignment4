@@ -7,6 +7,7 @@ const HomeScreen = () => {
             <Text style={styles.title}>Welcome to this App</Text>
             <Text style={styles.subtitle}>In this app you can use calculator</Text>
             <Text style={styles.subtitle}>Save and delete contacts and also view your profile</Text>
+            <Text style={styles.subtitle}>switch themes and signin/SignUp using google</Text>
 
             <TouchableOpacity style={styles.button}>
                 <Text style={styles.buttonText}>let's get started</Text>

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Switch, Button, TextInput, Alert } from 'react-native'; // Import TextInput here
+import { View, StyleSheet, Text, Switch, Button, TextInput, Alert } from 'react-native'; 
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -11,11 +11,15 @@ import CalculatorScreen from './screens/CalculatorScreen';
 import ContactScreen from './screens/ContactScreen';
 import ProfileScreen from './screens/Profile';
 import InternetConnection from './screens/InternetConnection';
+import SignInScreen from './screens/SignIn';
+import * as Linking from 'expo-linking'; 
+Linking.openURL('https://expo.dev');
 
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
 
 export default function App() {
+  <SignInScreen />
   const [theme, setTheme] = useState(DefaultTheme);
   const [currentThemeText, setCurrentThemeText] = useState('');
   const [isDarkTheme, setIsDarkTheme] = useState(false);
@@ -41,8 +45,12 @@ export default function App() {
 
   const AsyncStorageIcon = ({ focused, color, size }) => (
     <Ionicons name='cloud-upload-outline' size={size + 5} color={focused ? 'blue' : 'gray'} />
+
   );
 
+  const AuthenticationIcon = ({ focused, color, size }) => (
+    <Ionicons name="thermometer-outline" size={size + 5} color={focused ? 'blue' : 'gray'} />
+  );
 
   return (
     <View style={{ flex: 1 }}>
@@ -53,6 +61,7 @@ export default function App() {
           <Drawer.Screen name="Calculator" component={CalculatorScreen} options={{ drawerIcon: Calculator }} />
           <Drawer.Screen name="Contacts" component={ContactScreen} options={{ drawerIcon: Contact }} />
           <Drawer.Screen name="AsyncStorage" component={AsyncStorageScreen} options={{ drawerIcon: AsyncStorageIcon }} />
+          {<Drawer.Screen name="Authentication" component={SignInScreen} options={{ drawerIcon: AuthenticationIcon }} />}
 
         </Drawer.Navigator>
       </NavigationContainer>
