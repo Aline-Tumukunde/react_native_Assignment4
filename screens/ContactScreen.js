@@ -1,109 +1,83 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList } from 'react-native';
+import React, { Component } from 'react';
+import { Platform, StyleSheet, Text, View, FlatList, PermissionsAndroid } from 'react-native';
+import * as Contacts from 'expo-contacts';
 
-const ContactScreen = () => {
-  const [contacts, setContacts] = useState([]);
-  const [name, setName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  
-  const addContact = () => {
-    if (name.trim() === '' || phoneNumber.trim() === '') {
-   
+export default class ContactList extends Component {
+  state = {
+    contacts: null,
+    isLoading: false
+  };
+
+  componentDidMount() {
+    this.loadContacts();
+  }
+
+  loadContacts = async () => {
+    try {
+      this.setState({ isLoading: true });
+
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+          {
+            title: 'Contacts',
+            message: 'This app would like to view your contacts'
+          }
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          const { data } = await Contacts.getContactsAsync();
+          this.setState({ contacts: data, isLoading: false });
+        } else {
+          console.warn('Permission to access contacts was denied');
+          this.setState({ isLoading: false });
+        }
+      } else if (Platform.OS === 'ios') {
+        const { data } = await Contacts.getContactsAsync();
+        this.setState({ contacts: data, isLoading: false });
+      }
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      this.setState({ isLoading: false });
     }
-    const newContact = { id: contacts.length + 1, name, phoneNumber };
-    setContacts(prevContacts => [...prevContacts, newContact]);
-    setName('');
-    setPhoneNumber('');
   };
 
-  const deleteContact = (id) => {
-    setContacts(prevContacts => prevContacts.filter(contact => contact.id !== id));
-  };
+  render() {
+    const { contacts, isLoading } = this.state;
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Contacts</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-          placeholder="Name"
-        />
-        <TextInput
-          style={styles.input}
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          placeholder="Phone Number"
-          keyboardType="phone-pad"
-        />
-        <TouchableOpacity style={styles.addButton} onPress={addContact}>
-          <Text style={styles.buttonText}>Add Contact</Text>
-        </TouchableOpacity>
-      </View>
-      <FlatList
-        data={contacts}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.contactItem}>
-            <Text>{item.name}</Text>
-            <Text>{item.phoneNumber}</Text>
-            <TouchableOpacity onPress={() => deleteContact(item.id)}>
-              <Text style={styles.deleteButton}>Delete</Text>
-            </TouchableOpacity>
-          </View>
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Contacts List</Text>
+
+        {isLoading ? (
+          <Text>Loading...</Text>
+        ) : (
+          contacts && (
+            <FlatList
+              data={contacts}
+              renderItem={({ item }) => <Text>{item.name}</Text>}
+              keyExtractor={(item) => item.id.toString()}
+            />
+          )
         )}
-      />
-    </View>
-  );
-};
+      </View>
+    );
+  }
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    backgroundColor: '#E6E6FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
-  heading: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
+  text: {
+    textAlign: 'center',
+    fontSize: 30,
     marginBottom: 10,
   },
-  addButton: {
-    backgroundColor: '#715b8f',
-    padding: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  contactItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-  },
-  deleteButton: {
-    color: 'red',
-    fontWeight: 'bold',
+  contactText: {
+    fontSize: 20,
+    marginBottom: 2,
   },
 });
-
-export default ContactScreen;

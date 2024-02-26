@@ -1,28 +1,32 @@
-
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Switch, Button, TextInput, Alert } from 'react-native'; 
+import { View, StyleSheet, Text, Switch, Image, TouchableOpacity, Alert } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 import HomeScreen from './screens/HomeScreen';
 import CalculatorScreen from './screens/CalculatorScreen';
 import ContactScreen from './screens/ContactScreen';
-import ProfileScreen from './screens/Profile';
 import InternetConnection from './screens/InternetConnection';
 import SignInScreen from './screens/SignIn';
-import * as Linking from 'expo-linking'; 
-Linking.openURL('https://expo.dev');
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
 
 export default function App() {
-  <SignInScreen />
   const [theme, setTheme] = useState(DefaultTheme);
   const [currentThemeText, setCurrentThemeText] = useState('');
   const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+  const [result, setResult] = useState({}); // Initialize result to an empty object
+
+  useEffect(() => {
+    loadTheme();
+    requestImagePermission();
+  }, []);
 
   const loadTheme = async () => {
     const savedTheme = await getTheme();
@@ -30,10 +34,6 @@ export default function App() {
     setCurrentThemeText(savedTheme === 'dark' ? 'Dark Theme' : 'Light Theme');
     setIsDarkTheme(savedTheme === 'dark');
   };
-
-  useEffect(() => {
-    loadTheme();
-  }, []);
 
   const toggleTheme = async () => {
     const newTheme = isDarkTheme ? 'light' : 'dark';
@@ -43,30 +43,142 @@ export default function App() {
     setCurrentThemeText(newTheme === 'dark' ? 'Dark Theme' : 'Light Theme');
   };
 
-  const AsyncStorageIcon = ({ focused, color, size }) => (
-    <Ionicons name='cloud-upload-outline' size={size + 5} color={focused ? 'blue' : 'gray'} />
+  const requestImagePermission = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions to make this work!');
+    }
+  };
 
-  );
+  const selectImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
-  const AuthenticationIcon = ({ focused, color, size }) => (
-    <Ionicons name="thermometer-outline" size={size + 5} color={focused ? 'blue' : 'gray'} />
-  );
+    if (!result.cancelled) {
+      // Upload the image
+      uploadImage(result.uri);
+      setResult(result); // Store the result in state
+    }
+  };
+
+  const takePhoto = async () => {
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      // Upload the image
+      uploadImage(result.uri);
+      setResult(result); // Store the result in state
+    }
+  };
+
+  const uploadImage = async (uri) => {
+    const apiUrl = 'http://192.168.1.4:8081/assets/uploads'; // Update with your API URL
+    const formData = new FormData();
+    formData.append('image', {
+      uri: uri,
+      type: 'image/jpeg', // or whatever type your image is
+      name: 'image.jpg',
+    });
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          // You may need to include additional headers like authorization token
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const responseData = await response.json();
+      const uploadedImageUrl = responseData.imageUrl;
+
+      setProfileImage(uploadedImageUrl);
+    } catch (error) {
+      console.error('Error uploading image:', error.message);
+      Alert.alert('Upload Failed', 'Failed to upload image. Please try again later.');
+    }
+  };
+
+  const CustomDrawerContent = ({ navigation }) => {
+    const drawerItems = [
+      { label: 'Home', screen: 'Home', icon: <Ionicons name='home' size={24} color='gray' /> },
+      { label: 'Calculator', screen: 'Calculator', icon: <Ionicons name='calculator' size={24} color='gray' /> },
+      { label: 'Contacts', screen: 'Contacts', icon: <Ionicons name='person' size={24} color='gray' /> },
+      { label: 'WI-FI', screen: 'WI-FI', icon: <Ionicons name='wifi' size={24} color='gray' /> },
+      { label: 'Authentication', screen: 'Authentication', icon: <Ionicons name='thermometer-outline' size={24} color='gray' /> },
+    ];
+
+    const handleEditPress = () => {
+      Alert.alert(
+        'Edit Profile Picture',
+        'Choose an option',
+        [
+          { text: 'Take Photo', onPress: takePhoto },
+          { text: 'Choose from Gallery', onPress: selectImage },
+          { text: 'Cancel', style: 'cancel' }
+        ],
+        { cancelable: true }
+      );
+    };
+
+    return (
+      <SafeAreaView>
+        <View style={styles.drawerHeader}>
+          <TouchableOpacity onPress={handleEditPress}>
+            <Image source={{ uri: profileImage || 'https://picsum.photos/300' }} style={styles.profileImage} />
+          </TouchableOpacity>
+          <Text style={styles.profileText}>Profile</Text>
+          <View style={styles.editContainer}>
+            <Text>{'\n'}</Text>
+            <TouchableOpacity onPress={handleEditPress} style={styles.editButton}>
+              <Text style={styles.editButtonText}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View>
+          {drawerItems.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => navigation.navigate(item.screen)}
+              style={styles.drawerItem}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {item.icon}
+                <Text style={{ fontSize: 16, color: 'black' }}>{item.label}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </SafeAreaView>
+    );
+  };
 
   return (
     <View style={{ flex: 1 }}>
       <NavigationContainer theme={theme}>
-        <Drawer.Navigator>
-          <Drawer.Screen name="Home" component={TabNavigator} options={{ drawerIcon: H }} />
-          <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerIcon: Profile }} />
-          <Drawer.Screen name="Calculator" component={CalculatorScreen} options={{ drawerIcon: Calculator }} />
-          <Drawer.Screen name="Contacts" component={ContactScreen} options={{ drawerIcon: Contact }} />
-          <Drawer.Screen name="AsyncStorage" component={AsyncStorageScreen} options={{ drawerIcon: AsyncStorageIcon }} />
-          {<Drawer.Screen name="Authentication" component={SignInScreen} options={{ drawerIcon: AuthenticationIcon }} />}
-
+        <Drawer.Navigator
+          drawerContent={(props) => <CustomDrawerContent {...props} />}
+        >
+          <Drawer.Screen name="Home" component={TabNavigator} />
+          <Drawer.Screen name="Calculator" component={CalculatorScreen} />
+          <Drawer.Screen name="Contacts" component={ContactScreen} />
+          <Drawer.Screen name="WI-FI" component={InternetConnection} />
+          <Drawer.Screen name="Authentication" component={SignInScreen} />
         </Drawer.Navigator>
       </NavigationContainer>
       <View style={styles.themeSwitchContainer}>
-        {/* <Text>Current Theme: {currentThemeText}</Text> */}
         <Switch
           trackColor={{ false: "#767577", true: "#81b0ff" }}
           thumbColor={isDarkTheme ? "#f5dd4b" : "#f4f3f4"}
@@ -74,7 +186,6 @@ export default function App() {
           onValueChange={toggleTheme}
           value={isDarkTheme}
         />
-        {/* <Button title="Change Theme" onPress={toggleTheme} /> */}
       </View>
     </View>
   );
@@ -82,7 +193,16 @@ export default function App() {
 
 const TabNavigator = () => {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: {
+          display: 'flex'
+        },
+        tabBarItemStyle: {
+          flex: 1
+        }
+      }}
+    >
       <Tab.Screen
         name='HomeScreen'
         component={HomeScreen}
@@ -112,16 +232,6 @@ const TabNavigator = () => {
           ),
         }}
       />
-      {/* <Tab.Screen
-        name='AsyncStorage'
-        component={AsyncStorageScreen}
-        options={{
-          tabBarLabel: "AsyncStorage",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name='cloud-upload-outline' size={30} color={color} />
-          ),
-        }}
-      /> */}
       <Tab.Screen
         name='WI-FI'
         component={InternetConnection}
@@ -134,16 +244,65 @@ const TabNavigator = () => {
       />
     </Tab.Navigator>
   );
-}
+};
 
 const styles = StyleSheet.create({
+  drawerHeader: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    borderBottomColor: '#f4f4f4',
+    borderBottomWidth: 1,
+    backgroundColor: 'white',
+    height: '35%',
+  },
+  profileImage: {
+    height: 80,
+    width: 80,
+    borderRadius: 40,
+  },
+  profileText: {
+    fontSize: 22,
+    marginHorizontal: 20,
+    fontWeight: 'bold',
+    color: '#111',
+    fontFamily: 'Courier New'
+  },
+  editButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+
+  },
+  editButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'Courier New'
+  },
+  drawerItem: {
+    padding: 20,
+    borderBottomColor: '#f4f4f4',
+    borderBottomWidth: 1,
+
+  },
   themeSwitchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    bottom: 20,
-    alignSelf: 'center'
+    top: 50,
+    right: 10,
+    alignSelf: 'flex-end',
+  },
+  profileSubtext: {
+    fontSize: 16,
+    color: 'gray',
+    marginTop: 5,
+  },
+  editContainer: {
+    justifyContent: 'center',
   }
 });
 
@@ -153,79 +312,4 @@ const getTheme = async () => {
 };
 
 const setAsyncStorageTheme = async (theme) => {
-};
-
-const Profile = ({ focused, color, size }) => (
-  <Ionicons name='person' size={size + 5} color={focused ? 'blue' : 'gray'} />
-);
-
-const H = ({ focused, color, size }) => (
-  <Ionicons name='home' size={size + 5} color={focused ? 'blue' : 'gray'} />
-);
-
-const Calculator = ({ focused, color, size }) => (
-  <Ionicons name='calculator' size={size + 5} color={focused ? 'blue' : 'gray'} />
-);
-
-const Contact = ({ focused, color, size }) => (
-  <Ionicons name='person' size={size + 5} color={focused ? 'blue' : 'gray'} />
-);
-
-const AsyncStorageScreen = ({ navigation }) => {
-  const [storedData, setStoredData] = useState('');
-  const [inputText, setInputText] = useState('');
-
-  const storeData = async () => {
-    try {
-      await AsyncStorage.setItem('myKey', inputText);
-      Alert.alert('Success', 'Data stored successfully!');
-    } catch (error) {
-      console.error('Error storing data: ', error);
-      Alert.alert('Error', 'Failed to store data');
-    }
-  };
-
-  const getData = async () => {
-    try {
-      const value = await AsyncStorage.getItem('myKey');
-      if (value !== null) {
-        setStoredData(value);
-      } else {
-        Alert.alert('Error', 'No data found for the given key');
-      }
-    } catch (error) {
-      console.error('Error retrieving data: ', error);
-      Alert.alert('Error', 'Failed to retrieve data');
-    }
-  };
-
-  const removeData = async () => {
-    try {
-      await AsyncStorage.removeItem('myKey');
-      Alert.alert('Success', 'Data removed successfully!');
-      setStoredData('');
-    } catch (error) {
-      console.error('Error removing data: ', error);
-      Alert.alert('Error', 'Failed to remove data');
-    }
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
-
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <TextInput
-        style={{ width: '70%', height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 20, paddingHorizontal: 10 }}
-        placeholder="Please enter data"
-        onChangeText={text => setInputText(text)}
-        value={inputText}
-      />
-      <Button title="Insert  Data" onPress={storeData} />
-      <Button title="Display Data" onPress={getData} />
-      <Button title="Remove Data" onPress={removeData} />
-      {storedData ? <Text style={{ marginTop: 20 }}>Stored Data: {storedData}</Text> : null}
-    </View>
-  );
 };

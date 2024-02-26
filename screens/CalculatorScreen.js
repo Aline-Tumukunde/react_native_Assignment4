@@ -2,8 +2,15 @@ import React, { useState } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
 
 const CalculatorScreen = ({ input, setInput, result, setResult, onButtonPress }) => {
+  const buttons = [
+    '7', '8', '9', '/',
+    '4', '5', '6', '*',
+    '1', '2', '3', '-',
+    '0', 'C', '=', '+'
+  ];
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.calculatorContainer}>
       <View style={styles.resultContainer}>
         <Text style={styles.resultText}>{result}</Text>
       </View>
@@ -16,7 +23,7 @@ const CalculatorScreen = ({ input, setInput, result, setResult, onButtonPress })
         />
       </View>
       <View style={styles.buttonContainer}>
-        {['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', '0', 'C', '=', '+'].map((item, index) => (
+        {buttons.map((item, index) => (
           <TouchableOpacity key={index} style={styles.button} onPress={() => onButtonPress(item)}>
             <Text style={styles.buttonText}>{item}</Text>
           </TouchableOpacity>
@@ -78,6 +85,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#E6E6FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calculatorContainer: {
+    width: 350, // Set your desired width
+    height: 500, // Set your desired height
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
   },
   resultContainer: {
     flex: 2,
@@ -99,17 +115,19 @@ const styles = StyleSheet.create({
     flex: 7,
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    paddingHorizontal: 10,
   },
   button: {
-    fontSize: 24,
-    width: '24%',
-    height: '20%',
-    justifyContent: 'space-around',
+    width: '22%',
+    height: '18%',
+    justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: '98px',
-
+    borderRadius: 20,
+    margin: '1%',
+    marginVertical: '1%',
   },
   buttonText: {
     fontSize: 24,

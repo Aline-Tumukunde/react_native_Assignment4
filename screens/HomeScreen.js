@@ -1,17 +1,22 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image } from 'react-native';
 
 const HomeScreen = () => {
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Welcome to this App</Text>
-            <Text style={styles.subtitle}>In this app you can use calculator</Text>
-            <Text style={styles.subtitle}>Save and delete contacts and also view your profile</Text>
-            <Text style={styles.subtitle}>switch themes and signin/SignUp using google</Text>
-
-            <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>let's get started</Text>
-            </TouchableOpacity>
+            <ImageBackground
+                source={{ uri: 'https://picsum.photos/100/200' }}
+                style={styles.backgroundImage}>
+                <View style={styles.body}>
+                    <Text style={styles.title}>Welcome to this App</Text>
+                    <Text style={styles.subtitle}>In this app you can use calculator</Text>
+                    <Text style={styles.subtitle}>Save and delete contacts and also view your profile</Text>
+                    <Text style={styles.subtitle}>Switch themes and sign in/Sign up using Google</Text>
+                    <TouchableOpacity style={styles.button}>
+                        <Text style={styles.buttonText}>Let's Get Started</Text>
+                    </TouchableOpacity>
+                </View>
+            </ImageBackground>
         </View>
     );
 };
@@ -19,10 +24,20 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    backgroundImage: {
+        flex: 1,
+        resizeMode: 'cover',
         justifyContent: 'center',
+    },
+    header: {
         alignItems: 'center',
-        backgroundColor: '#E6E6FA',
-        paddingHorizontal: 20,
+        paddingTop: 50,
+    },
+    logo: {
+        width: 100,
+        height: 100,
+        marginBottom: 20,
     },
     title: {
         fontSize: 32,
@@ -30,24 +45,33 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         textAlign: 'center',
         color: '#715b8f',
+        fontFamily: 'Courier New',
+    },
+    body: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     subtitle: {
         fontSize: 24,
         marginBottom: 10,
         textAlign: 'center',
         color: 'black',
+        fontFamily: 'Courier New',
     },
     button: {
         backgroundColor: '#715b8f',
         paddingHorizontal: 20,
-        paddingVertical: 10,
+        paddingVertical: 50,
         borderRadius: 5,
-        marginTop: 20,
+        marginLeft: 10,
+        alignItems: 'center',
     },
     buttonText: {
         fontSize: 24,
         color: 'white',
         fontWeight: 'bold',
+        fontFamily: 'Courier New',
     },
 });
 
