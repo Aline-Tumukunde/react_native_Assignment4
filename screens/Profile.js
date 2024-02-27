@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Image, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 const ProfileScreen = () => {
     const [profileImage, setProfileImage] = useState(null);
 
-    const selectImage = async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions to make this work!');
-            return;
-        }
-
-        const result = await ImagePicker.launchImageLibraryAsync({
+    // Function to handle image picking from gallery
+    const pickImageFromGallery = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [1, 1],
             quality: 1,
         });
 
@@ -24,17 +19,12 @@ const ProfileScreen = () => {
         }
     };
 
-    const takePhoto = async () => {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Sorry, we need camera permissions to make this work!');
-            return;
-        }
-
-        const result = await ImagePicker.launchCameraAsync({
+    // Function to handle image capture from camera
+    const takePicture = async () => {
+        let result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [1, 1],
             quality: 1,
         });
 
@@ -45,20 +35,23 @@ const ProfileScreen = () => {
 
     return (
         <View style={styles.container}>
-            {/* Your profile image component here */}
-            {profileImage && <Image source={{ uri: profileImage }} style={styles.profileImage} />}
-            <TouchableOpacity onPress={selectImage}>
-                <Text>Select Image from Library</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={takePhoto}>
-                <Text>Take Photo</Text>
-            </TouchableOpacity>
-            {/* Other components */}
+            <Text style={styles.title}>Profile</Text>
+            {profileImage ? (
+                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            ) : (
+                <Text>No profile image selected</Text>
+            )}
+            <View style={styles.buttonContainer}>
+                <TouchableOpacity onPress={pickImageFromGallery} style={styles.button}>
+                    <Text style={styles.buttonText}>Choose from Gallery</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={takePicture} style={styles.button}>
+                    <Text style={styles.buttonText}>Take Picture</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 };
-
-export default ProfileScreen;
 
 const styles = StyleSheet.create({
     container: {
@@ -66,10 +59,31 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+    },
     profileImage: {
         width: 200,
         height: 200,
-        borderRadius: 100, // to make it round, assuming a square image
+        borderRadius: 100,
         marginBottom: 20,
     },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        width: '100%',
+    },
+    button: {
+        backgroundColor: 'blue',
+        padding: 10,
+        borderRadius: 5,
+    },
+    buttonText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
 });
+
+export default ProfileScreen;

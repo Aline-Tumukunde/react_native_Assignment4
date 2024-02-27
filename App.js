@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Switch, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, Text, Switch, Image, TouchableOpacity, Alert, Button } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import HomeScreen from './screens/HomeScreen';
 import CalculatorScreen from './screens/CalculatorScreen';
@@ -12,16 +11,16 @@ import ContactScreen from './screens/ContactScreen';
 import InternetConnection from './screens/InternetConnection';
 import SignInScreen from './screens/SignIn';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Google from 'expo-auth-session/providers/google';
 
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [theme, setTheme] = useState(DefaultTheme);
-  const [currentThemeText, setCurrentThemeText] = useState('');
   const [isDarkTheme, setIsDarkTheme] = useState(false);
-  const [profileImage, setProfileImage] = useState(null);
-  const [result, setResult] = useState({}); // Initialize result to an empty object
+  const [profileImage, setProfileImage] = useState();
+
 
   useEffect(() => {
     loadTheme();
@@ -31,7 +30,6 @@ export default function App() {
   const loadTheme = async () => {
     const savedTheme = await getTheme();
     setTheme(savedTheme === 'dark' ? DarkTheme : DefaultTheme);
-    setCurrentThemeText(savedTheme === 'dark' ? 'Dark Theme' : 'Light Theme');
     setIsDarkTheme(savedTheme === 'dark');
   };
 
@@ -40,7 +38,6 @@ export default function App() {
     setIsDarkTheme(!isDarkTheme);
     setAsyncStorageTheme(newTheme);
     setTheme(newTheme === 'dark' ? DarkTheme : DefaultTheme);
-    setCurrentThemeText(newTheme === 'dark' ? 'Dark Theme' : 'Light Theme');
   };
 
   const requestImagePermission = async () => {
@@ -51,65 +48,40 @@ export default function App() {
   };
 
   const selectImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
 
-    if (!result.cancelled) {
-      // Upload the image
-      uploadImage(result.uri);
-      setResult(result); // Store the result in state
+      if (!result.cancelled) {
+        setProfileImage(result.uri);
+      }
+    } catch (error) {
+      console.error('Error selecting image:', error);
     }
   };
 
   const takePhoto = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
 
-    if (!result.cancelled) {
-      // Upload the image
-      uploadImage(result.uri);
-      setResult(result); // Store the result in state
+      if (!result.cancelled) {
+        setProfileImage(result.uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
     }
   };
 
   const uploadImage = async (uri) => {
-    const apiUrl = 'http://192.168.1.4:8081/assets/uploads'; // Update with your API URL
-    const formData = new FormData();
-    formData.append('image', {
-      uri: uri,
-      type: 'image/jpeg', // or whatever type your image is
-      name: 'image.jpg',
-    });
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          // You may need to include additional headers like authorization token
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const responseData = await response.json();
-      const uploadedImageUrl = responseData.imageUrl;
-
-      setProfileImage(uploadedImageUrl);
-    } catch (error) {
-      console.error('Error uploading image:', error.message);
-      Alert.alert('Upload Failed', 'Failed to upload image. Please try again later.');
-    }
   };
 
   const CustomDrawerContent = ({ navigation }) => {
@@ -138,7 +110,11 @@ export default function App() {
       <SafeAreaView>
         <View style={styles.drawerHeader}>
           <TouchableOpacity onPress={handleEditPress}>
-            <Image source={{ uri: profileImage || 'https://picsum.photos/300' }} style={styles.profileImage} />
+            {profileImage ? (
+              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            ) : (
+              <Image source={{ uri: 'https://picsum.photos/300' }} style={styles.profileImage} />
+            )}
           </TouchableOpacity>
           <Text style={styles.profileText}>Profile</Text>
           <View style={styles.editContainer}>
@@ -164,7 +140,6 @@ export default function App() {
       </SafeAreaView>
     );
   };
-
   return (
     <View style={{ flex: 1 }}>
       <NavigationContainer theme={theme}>
@@ -175,6 +150,7 @@ export default function App() {
           <Drawer.Screen name="Calculator" component={CalculatorScreen} />
           <Drawer.Screen name="Contacts" component={ContactScreen} />
           <Drawer.Screen name="WI-FI" component={InternetConnection} />
+          {/* Display SignInScreen here */}
           <Drawer.Screen name="Authentication" component={SignInScreen} />
         </Drawer.Navigator>
       </NavigationContainer>
@@ -274,7 +250,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 5,
-
   },
   editButtonText: {
     color: 'white',
@@ -285,7 +260,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomColor: '#f4f4f4',
     borderBottomWidth: 1,
-
+    marginBottom: 5,
   },
   themeSwitchContainer: {
     flexDirection: 'row',
@@ -295,6 +270,7 @@ const styles = StyleSheet.create({
     top: 50,
     right: 10,
     alignSelf: 'flex-end',
+    marginTop: 10,
   },
   profileSubtext: {
     fontSize: 16,
@@ -306,10 +282,10 @@ const styles = StyleSheet.create({
   }
 });
 
-// Mock implementation of AsyncStorage functions
 const getTheme = async () => {
-  return 'light'; // Default theme
+  return 'light';
 };
 
 const setAsyncStorageTheme = async (theme) => {
 };
+

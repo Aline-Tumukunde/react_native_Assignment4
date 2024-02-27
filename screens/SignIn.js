@@ -26,14 +26,11 @@ const SignInScreen = () => {
                 body: JSON.stringify({ id_token: idToken }),
             });
             if (response.ok) {
-
                 console.log('User authenticated with backend');
             } else {
-
                 console.error('Failed to authenticate user with backend');
             }
         } catch (error) {
-
             console.error('Error authenticating with backend:', error.message);
         }
     };
@@ -45,6 +42,12 @@ const SignInScreen = () => {
                 <Text>Your text content here</Text>
                 <Button
                     title="Sign in with Google"
+                    onPress={() => {
+                        promptAsync();
+                    }}
+                />
+                <Button
+                    title="Sign up with Google"
                     onPress={() => {
                         promptAsync();
                     }}
