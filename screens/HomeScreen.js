@@ -8,9 +8,9 @@ const HomeScreen = () => {
                 source={{ uri: 'https://picsum.photos/100/200' }}
                 style={styles.backgroundImage}>
                 <View style={styles.body}>
-                    <Text style={styles.title}>Welcome to this App</Text>
+                    <Text style={styles.title}>Welcome to MyApp</Text>
                     <Text style={styles.subtitle}>In this app you can use calculator</Text>
-                    <Text style={styles.subtitle}>Save and delete contacts and also view your profile</Text>
+                    <Text style={styles.subtitle}>Access local Contacts, you can edit your profile</Text>
                     <Text style={styles.subtitle}>Switch themes and sign in/Sign up using Google</Text>
                     <TouchableOpacity style={styles.button}>
                         <Text style={styles.buttonText}>Let's Get Started</Text>
